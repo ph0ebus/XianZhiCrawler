@@ -15,3 +15,6 @@
 
 输出方式更新为markdown，避免输出pdf导致的代码折叠问题，解析为markdown部分借鉴了 https://github.com/Zh0um1/xzSpider 这个项目，并根据遇到的bug做了一定优化处理
 
+# Demo
+
+[![demo](https://i.ytimg.com/vi/prxfSq_cxVg/maxresdefault.jpg)](https://youtu.be/prxfSq_cxVg?si=1HfRxytnUvMXrDVI "demo")

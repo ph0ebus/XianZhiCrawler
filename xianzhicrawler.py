@@ -15,9 +15,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def convert(regex: str, new: str, src: str):
-    # print("regex: ", regex)
-    # print("new: ", new)
-    # print("src: ", src)
     return re.sub(regex, new, src, 0, re.MULTILINE)
 
 
@@ -57,15 +54,11 @@ def replace_link(src: str, title: str):
         f = open(f"{dir_name}/{basename}", "wb")
         f.write(r.content)
         f.close()
-        # re_link = convert(r"\.", "\\.", link)
-        # re_link = convert(r"\-", "\\-", re_link)
+
         ref = r'<img src="' + link + r'">'
         src = src.replace(ref, f"image-{count}")
         src = src.replace(link, f"{base_dir}/{basename}")
-        # print("re_link: ",re_link)
-        # ref = r'<img src=\"' + re_link + r'\">'
-        # src = convert(ref, f"image-{count}", src)
-        # src = convert(re_link, f"{base_dir}/{basename}", src)
+
         count += 1
     return src
 
@@ -125,8 +118,7 @@ Accept-Encoding: gzip, deflate, br, zstd
 Accept-Language: zh-CN,zh;q=0.9'''.split("\n")
 
 headers_dict = {header.split(":")[0]: ':'.join(header.split(":")[1:]).strip() for header in headers_list}
-cookie_list = "_c_WBKFRo=GWapfH2U4VUvfwONiRto0bcrXXlNYsqgkHxE9iQI; _nb_ioWEgULi=; acw_tc=1a0c39d417322411578572458e0035d3925ef328a5ab9bbe8f096fb5b6ff58; acw_sc__v3=673fe7117cec4c83f9aa588fa80aee30719f7477; tfstk=fgUDrX1P4oofVPxoZgufblj3zUI8GIgsqRLtBVHN4YkWBCFNc1bgMWmtbtgYS8VIFj-Z3mRyGz2HWEBfc58iWVWdpwQLGS3s79LbCsKthfNrQLGhnuFj5VWRpwQLGSwEN8LDsV5ozfhHbVoqb35o9fgwuc824LkSUAuZ7RPPZfMrQb650xaazzWYusKXDHKLrjWsLSDoNbaoimDFRYYaMzcmmvP4kQM3Ebz8rDnJ6T0zOueqZ2bDdjqztqlg56-iIc4jrfq5nne3hfPrq-C9fbqg_ygj-C74ZqDmYzofS6wUZ5rKqzCFRq0q3l3b6BXYZr2YGzV9_3umkum3o27B3AE8tPcg5O_uK5PQb04Mngok4HJQMFGP6z-6fmlSZvKXRm1C2uvs3_fkY1iqNjMdZ_x6fmlSZvClZH7s0bGjp; ssxmod_itna=iqIxR7eCqmq7q0LxYKBW1QnMmDG2q4AKrdD/I3xnqD=GFDK40oYyxDC4=lQeZUa7R5xd+YB0n=5qiOeoKNI+K8DeDHxY=DU10beDxoq0rD74irDDxD3DbbdDSDWKD9D048yRvLKGWDbxNDmqdDILNDxDLBiTjDxYQDGwPjD7Q4HuqD0qeiK0hXCDiDY4LDwwRyYinoID=DjwiD/bm7ZD=YppFNUTWaOcNTeqGyeKGuIkryAeDHFdNSlq4=QrqYngIrihGoUhhxlBAfI0uCWRD5W04PSYpkniCL608DGbmf4O4xD=; ssxmod_itna2=iqIxR7eCqmq7q0LxYKBW1QnMmDG2q4AKrG93vQWDBurnq7PwExBWFGFCG2LOF2=oKtK0CDWm4zt+g74i4lexMH08xwfxoNqKxfWvHCD0hH6wB++LdS1ZjOD3H7eDSU97GHvIM86CTZFtfPazBD9tTYRFLxqGleP8x9aaxKc+=Kuw=Fp8TY9m07BajEyCTGIv0GEkrc5Ns3EO+xFjsxE=K4FE=9Y8m39aromCXPH8BITH/83RT7BRptnvglOQ7K=aDZOwqj=Q2WPyr4nRs4ZjqtvhfcpSX=FoDQI5LD08DYI54D==".split(
-    ";")  # 切换为自己的cookie
+cookie_list = open("./cookie.txt", encoding="utf-8").read().split(";")  # 切换为自己的cookie
 cookie_dict = {cookie.strip().split("=")[0]: ("=".join(cookie.strip().split("=")[1:])) for cookie in cookie_list}
 # print(cookie_dict)
 for key, value in headers_dict.items():

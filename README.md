@@ -3,7 +3,7 @@
 ![Language](https://img.shields.io/badge/language-python-blue.svg)
 
 > [!IMPORTANT]
-> 本项目的目的仅是给需要离线打比赛的CTFer提供一个离线文档检索、使用的方便途径，仅供学习交流使用，请勿用于非法用途
+> 本项目的目的仅是给需要离线打比赛的CTFer提供一个离线文档检索、使用的方便途径，仅供学习交流使用，请勿用于非法用途，如果对您有用的话，求个star呜呜，孩子没见过star
 
 # Introduction
 

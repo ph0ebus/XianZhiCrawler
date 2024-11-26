@@ -13,6 +13,12 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('start', type=int, help="page num of newest article")
+parser.add_argument('end', type=int, help="page num of last article")
+args = parser.parse_args()
 
 def convert(regex: str, new: str, src: str):
     return re.sub(regex, new, src, 0, re.MULTILINE)
@@ -138,12 +144,7 @@ for key, value in cookie_dict.items():
     # print(cookie)
     driver.add_cookie(cookie_dict=cookie)
 
-import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument('start', type=int, help="page num of newest article")
-parser.add_argument('end', type=int, help="page num of last article")
-args = parser.parse_args()
 print(f"start: {args.start} end: {args.end}")
 for num in range(args.start, args.end, -1):
     status_code = generate_md('https://xz.aliyun.com/t/%d' % num, num)

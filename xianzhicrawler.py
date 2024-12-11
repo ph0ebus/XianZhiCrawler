@@ -4,12 +4,11 @@
 # @Software: PyCharm
 import json
 import re, time
-import tomd
+import html2text
 import os
 from selenium import webdriver
 import requests
 import urllib3
-
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -37,7 +36,7 @@ def format_md(s: str):
 
 
 def replace_link(src: str, title: str):
-    regex = r"<img src=\"(.*)\">"
+    regex = r"\!\[\]\((.*?)\)"
     img_links = re.findall(regex, src, re.MULTILINE)
     base_dir = title + ".assets"
     dir_name = output_dir + "/" + base_dir
@@ -61,8 +60,8 @@ def replace_link(src: str, title: str):
         f.write(r.content)
         f.close()
 
-        ref = r'<img src="' + link + r'">'
-        src = src.replace(ref, f"image-{count}")
+        # ref = r'<img src="' + link + r'">'
+        # src = src.replace(ref, f"image-{count}")
         src = src.replace(link, f"{base_dir}/{basename}")
 
         count += 1
@@ -96,8 +95,8 @@ def generate_md(article, num):
     if isinstance(content, str):
         content = content.strip()
     file_name = output_dir + "/" + title + ".md"
-    md = tomd.convert(content)
-    md = format_md(md)
+    md = html2text.html2text(content)
+    # md = format_md(md)
     md = front_template + md
     md = replace_link(md, title)
     f = open(file_name, "w", encoding="utf-8")
